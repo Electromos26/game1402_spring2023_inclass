@@ -517,6 +517,12 @@ MonoBehaviour:
   health: 0
   damage: 10
   laserPrefab: {fileID: 1134949319946392262, guid: faa0036ce33127147ba525c7f5ab9b92, type: 3}
+  viewAngle: 80
+  respawnTime: 5
+  aimOffset: {x: 0, y: 1.5, z: 0}
+  shootInterval: 0.5
+  lookDistance: 10
+  StunDuration: 10
 --- !u!1 &619369805960470330
 GameObject:
   m_ObjectHideFlags: 0

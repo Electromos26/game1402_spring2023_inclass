@@ -12,7 +12,8 @@ public class AIController : Unit
     {
         Idle,
         MovingToOutpost,
-        Chasing
+        Chasing,
+        Stunned
     }
     public Vector3 aimOffset = new Vector3(0, 1.5f, 0);
     public float shootInterval = 0.5f;
@@ -21,11 +22,20 @@ public class AIController : Unit
     private NavMeshAgent agent; //this is our navmesh agent
     private Unit currentEnemy; //current enemy
     private Outpost currentOutpost; //the current outpost we are focused on
+
+    private float stunTime = 0;
+    private float defaultSpeed;
+
+
+    [SerializeField]
+    private float StunDuration;
     protected override void Start()
     {
         base.Start();
         agent = GetComponent<NavMeshAgent>(); //this is how we grab the navmesh agent component (will return an error if we haven't defined
         SetState(State.Idle);
+        defaultSpeed = agent.speed;
+
     }
     private void SetState(State newState)
     {
@@ -47,11 +57,37 @@ public class AIController : Unit
                 StartCoroutine(OnChasing());
                 //do some work
                 break;
+            case State.Stunned:
+                StartCoroutine(OnStunned());
+                //do some work
+                break;
             default:
                 break;
         }
                     ///
     }
+    private IEnumerator OnStunned() //handles our idle state
+    {
+      
+
+        animator.SetBool("isStunned", true);
+        agent.speed = 0;
+        while (stunTime <= StunDuration)
+        {
+            stunTime += Time.deltaTime;
+            yield return null;
+        }
+        resetStunValues();
+        SetState(State.Idle); 
+    }
+    void resetStunValues()
+    {
+        animator.SetBool("isStunned", false);
+        stunTime = 0;
+        agent.speed = defaultSpeed;
+    }
+
+
     private IEnumerator OnIdle() //handles our idle state
     {
         //when idling, we should probably do some work and look for an outpost
@@ -151,10 +187,21 @@ public class AIController : Unit
         base.Respawn();
         SetState(State.Idle);
     }
+    protected override void OnHit(Unit attacker)
+    {
+        if (isAlive)
+        {
+            SetState(State.Stunned);
+        }
+        base.OnHit(attacker);
+        
+    }
     protected override void Die()
     {
         StopAllCoroutines();
         agent.ResetPath();
+        resetStunValues();
+
         base.Die();
         currentEnemy = null;
         
