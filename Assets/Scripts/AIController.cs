@@ -64,11 +64,11 @@ public class AIController : Unit
             default:
                 break;
         }
-                    ///
+        ///
     }
     private IEnumerator OnStunned() //handles our idle state
     {
-      
+
 
         animator.SetBool("isStunned", true);
         agent.speed = 0;
@@ -78,7 +78,7 @@ public class AIController : Unit
             yield return null;
         }
         resetStunValues();
-        SetState(State.Idle); 
+        SetState(State.Idle);
     }
     void resetStunValues()
     {
@@ -87,16 +87,19 @@ public class AIController : Unit
         agent.speed = defaultSpeed;
     }
 
-
+    public void setTeam(int newTeam) 
+    {
+        team = newTeam;
+    }
     private IEnumerator OnIdle() //handles our idle state
     {
         //when idling, we should probably do some work and look for an outpost
         currentOutpost = null;
         while (currentOutpost == null)
         {
-            if(isAlive)
+            if (isAlive)
                 LookForOutposts(); //if we ever find an outpost, and the currentOutpost changes, we will leave this loop
-            yield return null; 
+            yield return null;
         }
         SetState(State.MovingToOutpost); //we found an outpost, we now need to move
         //this will change
@@ -104,7 +107,7 @@ public class AIController : Unit
     private IEnumerator OnMovingToOutpost()
     {
         agent.SetDestination(currentOutpost.transform.position);
-        while(!(currentOutpost.team == Team  && currentOutpost.currentValue == 1))
+        while (!(currentOutpost.team == Team && currentOutpost.currentValue == 1))
         {
             //look for enemies
             LookForEnemies();
@@ -124,7 +127,7 @@ public class AIController : Unit
             float distanceToEnemy = Vector3.Distance(currentEnemy.transform.position, this.transform.position);
             //if we are too far away or we can't see our enemy, let's move towards them
             //otherwise, if our shoot timer is up, shoot them
-            if(distanceToEnemy > lookDistance || !CanSee(currentEnemy.transform, currentEnemy.transform.position + aimOffset))
+            if (distanceToEnemy > lookDistance || !CanSee(currentEnemy.transform, currentEnemy.transform.position + aimOffset))
             {
                 agent.SetDestination(currentEnemy.transform.position);
             }
@@ -151,7 +154,7 @@ public class AIController : Unit
                     ShowLasers(targetPos);
                 }
             }
-            yield return null;  
+            yield return null;
         }
         currentEnemy = null;
         SetState(State.Idle);
@@ -159,15 +162,15 @@ public class AIController : Unit
     private void LookForEnemies()
     {
         Collider[] surroundingColliders = Physics.OverlapSphere(this.transform.position, lookDistance);
-        foreach(Collider coll in surroundingColliders)
+        foreach (Collider coll in surroundingColliders)
         {
             //how do we know if the element we are colliding with is an enemy?
             //Not on our team.
             Unit unit = coll.GetComponent<Unit>();
-            if(unit != null)
+            if (unit != null)
             {
                 //we also want to check a couplemore things:
-                if(unit.Team != Team && CanSee(unit.transform, unit.transform.position + aimOffset) && unit.isAlive)
+                if (unit.Team != Team && CanSee(unit.transform, unit.transform.position + aimOffset) && unit.isAlive)
                 {
                     currentEnemy = unit;
                     SetState(State.Chasing);
@@ -194,7 +197,7 @@ public class AIController : Unit
             SetState(State.Stunned);
         }
         base.OnHit(attacker);
-        
+
     }
     protected override void Die()
     {
@@ -204,8 +207,8 @@ public class AIController : Unit
 
         base.Die();
         currentEnemy = null;
-        
-        
+
+
     }
     // Update is called once per frame
     void Update()

@@ -1,9 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 public class Unit : MonoBehaviour
 {
+    [SerializeField]
+    private UnityEvent events;
+
+    [SerializeField]
+    GameObject spawner;
     //this is going to be the base class for both our PlayerController, and our eventual AIController. This is going to be shared properties between our PlayerController and our AI
     // Start is called before the first frame update
     protected Animator animator;
@@ -12,7 +18,7 @@ public class Unit : MonoBehaviour
     [SerializeField]
     int fullHealth = 100;
     [SerializeField]
-    int team; //the team our unit belongs to
+    protected int team; //the team our unit belongs to
     [SerializeField]
     int health; //the current health value of our unit 
     [SerializeField]
@@ -38,7 +44,6 @@ public class Unit : MonoBehaviour
         startPos = this.transform.position;
         Respawn();
         gameMenu = GameManager.Instance.GetComponentInChildren<GameMenu>(); // Get the GameMenu component from child GameObjects
-       
     }
     public int Team
     {
@@ -47,10 +52,25 @@ public class Unit : MonoBehaviour
             return team;
         }
     }
+    private void SpawnBox()
+    {
+        Vector3 spawnerPos;
+        if (spawner != null)
+        {
+            spawnerPos = spawner.transform.position;
+
+        }
+        else
+        {
+            spawnerPos = this.transform.position;
+
+        }
+        this.transform.position = spawnerPos;
+    }
     protected virtual void OnHit(Unit attacker)
     {
         health -= attacker.damage; //take some damage from the attacker
-        if(health <= 0)
+        if (health <= 0)
         {
             Die();
             //we will do death code later
@@ -67,9 +87,9 @@ public class Unit : MonoBehaviour
         Ray ray = new Ray(startPos, dir);
         LayerMask mask = ~LayerMask.GetMask("Outpost");//make sure that we don't care about our Outposts when looking for things
         RaycastHit hit;
-        if(Physics.Raycast(ray, out hit, Mathf.Infinity, mask))
+        if (Physics.Raycast(ray, out hit, Mathf.Infinity, mask))
         {
-            if(hit.transform != target)
+            if (hit.transform != target)
             {
                 return false;
             }
@@ -93,16 +113,16 @@ public class Unit : MonoBehaviour
                 if (unit.health <= 0 && !unit.isAlive) // Check if the targeted unit is now dead and hasn't been processed before
                 {
                     gameMenu.TeamKill(team); // Increase kill count for the current unit's team
-                    unit.isAlive = false; 
+                    unit.isAlive = false;
                 }
                 ShowLasers(hit.point);
             }
-            
+
         }
     }
     protected void ShowLasers(Vector3 targetPosition) //the target position is what we are aiming for
     {
-        foreach(Eye eye in eyes)
+        foreach (Eye eye in eyes)
         {
             Laser laser = Instantiate(laserPrefab) as Laser; //the "as Laser" casts the game object to a laser; this is a technique we can use if we know we are creating a game object of a specific type (in this case, we know the laserPrefab is going to be a Laser)
             laser.Init(myColor, eye.transform.position, targetPosition);
@@ -111,7 +131,7 @@ public class Unit : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        
+
     }
 
     protected bool IsGrounded() //we want to figure out if our character is on the ground or not
@@ -126,6 +146,7 @@ public class Unit : MonoBehaviour
         if (!isAlive)
             return; //this is a mistake clearly because we are already dead
         gameMenu.TeamLost(team); //increase teammate lost 
+        events.Invoke();
         gameObject.layer = LayerMask.NameToLayer("DeadTeddy");
 
         isAlive = false;
@@ -135,10 +156,12 @@ public class Unit : MonoBehaviour
     }
     protected virtual void Respawn()
     {
+
+
         isAlive = true;
         gameObject.layer = LayerMask.NameToLayer("LiveTeddy");
         health = fullHealth;
-        this.transform.position = startPos;
+        SpawnBox();
         animator.SetBool("Dead", false);
         //when we respawn, what do we need to do?
         //1) Change the layer
