@@ -10,20 +10,24 @@ public class GameMenu : MonoBehaviour
     public static bool isPaused; //this keeps track of whether our game is paused or not
     public ExitPopup exitPopup;
     public TextMeshProUGUI scoreTextPrefab; // Renamed to better reflect its purpose
-    public TextMeshProUGUI deathTextPrefab;
+    public TextMeshProUGUI lostTextPrefab;
     public TextMeshProUGUI killTextPrefab;
     private int numTeams;
     private TextMeshProUGUI[] scoreFields;//this score fields is based on the number of teams and their respective values
-    private TextMeshProUGUI[] deathFields;//this score fields is based on the number of teams and their respective values
+    private TextMeshProUGUI[] lostFields;//this score fields is based on the number of teams and their respective values
+    private TextMeshProUGUI[] killFields;
 
-    private int[] teamDeathCounts;    // Start is called before the first frame update
+    private int[] teamLostCounts;    // Start is called before the first frame update
+    private int[] teamKillCounts;
     void Start()
     {
         numTeams = GameManager.Instance.teams.Length;
         scoreFields = new TextMeshProUGUI[numTeams];
-        deathFields = new TextMeshProUGUI[numTeams];
+        lostFields = new TextMeshProUGUI[numTeams];
+        killFields = new TextMeshProUGUI[numTeams];
 
-        teamDeathCounts = new int[numTeams];
+        teamLostCounts = new int[numTeams];
+        teamKillCounts = new int[numTeams];
 
         for (int i = 0; i < numTeams; i++)
         {
@@ -32,20 +36,31 @@ public class GameMenu : MonoBehaviour
             scoreFields[i].transform.SetParent(scoreTextPrefab.transform.parent, false);
             scoreFields[i].color = GameManager.Instance.teams[i];
 
-            deathFields[i] = Instantiate(deathTextPrefab); // Instantiate the alive teammate count field
-            deathFields[i].transform.SetParent(deathTextPrefab.transform.parent, false);
-            deathFields[i].color = GameManager.Instance.teams[i];
-            teamDeathCounts[i] = 0;
+            lostFields[i] = Instantiate(lostTextPrefab); // Instantiate the  teammates lost count field
+            lostFields[i].transform.SetParent(lostTextPrefab.transform.parent, false);
+            lostFields[i].color = GameManager.Instance.teams[i];
+
+            killFields[i] = Instantiate(lostTextPrefab); // Instantiate the kills count field
+            killFields[i].transform.SetParent(lostTextPrefab.transform.parent, false);
+            killFields[i].color = GameManager.Instance.teams[i];
+
+            teamLostCounts[i] = 0;
+            teamKillCounts[i] = 0;
+            
         }
         Destroy(scoreTextPrefab.gameObject); //we use the text prefab to create objects attached to a particular parent, and then we destroy them
-        Destroy(deathTextPrefab.gameObject); //we use the text prefab to create objects attached to a particular parent, and then we destroy them
+        Destroy(lostTextPrefab.gameObject); //we use the text prefab to create objects attached to a particular parent, and then we destroy them
+        Destroy(killTextPrefab.gameObject); //we use the text prefab to create objects attached to a particular parent, and then we destroy them
         isPaused = false; //we start with our game paused
     }
-    public void TeamDeath(int teamIndex)
+    public void TeamLost(int teamIndex)
     {
-        teamDeathCounts[teamIndex]++;
+        teamLostCounts[teamIndex]++;
     }
-
+    public void TeamKill(int teamIndex)
+    {
+        teamKillCounts[teamIndex]++;
+    }
     // Update is called once per frame
     void Update()
     {
@@ -56,7 +71,8 @@ public class GameMenu : MonoBehaviour
 
         for (int i = 0; i < numTeams; i++)
         {
-            deathFields[i].text = "died: \n" + teamDeathCounts[i].ToString();
+            lostFields[i].text = "lost: \n" + teamLostCounts[i].ToString();
+            killFields[i].text = "kills: \n" + teamKillCounts[i].ToString();
             scoreFields[i].text = "score: \n" + ScoreManager.Instance.scores[i].ToString();
         }
         if (Input.GetKeyDown(KeyCode.P))

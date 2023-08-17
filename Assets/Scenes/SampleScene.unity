@@ -278,7 +278,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   exitPopup: {fileID: 893222675}
   scoreTextPrefab: {fileID: 852790928}
-  deathTextPrefab: {fileID: 852790928}
+  lostTextPrefab: {fileID: 852790928}
   killTextPrefab: {fileID: 852790928}
 --- !u!1001 &48113471
 PrefabInstance:

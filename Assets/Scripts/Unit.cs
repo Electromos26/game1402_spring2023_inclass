@@ -38,10 +38,7 @@ public class Unit : MonoBehaviour
         startPos = this.transform.position;
         Respawn();
         gameMenu = GameManager.Instance.GetComponentInChildren<GameMenu>(); // Get the GameMenu component from child GameObjects
-        if (gameMenu == null) //debug stuff
-        {
-            Debug.LogError("GameMenu component not found in children.");
-        }
+       
     }
     public int Team
     {
@@ -87,13 +84,17 @@ public class Unit : MonoBehaviour
     {
         //we only want to shoot at units 
         Unit unit = hit.transform.GetComponent<Unit>(); //let's see if we get a unit
-        if(unit != null)
+        if (unit != null && unit.isAlive) // Check if the target unit is alive
         {
-            //do some work
-            if(unit.team != team)
+            if (unit.team != team)
             {
-                
-                unit.OnHit(this);//we are telling a unit that we have done some damage to it
+                unit.OnHit(this);
+
+                if (unit.health <= 0 && !unit.isAlive) // Check if the targeted unit is now dead and hasn't been processed before
+                {
+                    gameMenu.TeamKill(team); // Increase kill count for the current unit's team
+                    unit.isAlive = false; 
+                }
                 ShowLasers(hit.point);
             }
             
@@ -124,7 +125,7 @@ public class Unit : MonoBehaviour
     {
         if (!isAlive)
             return; //this is a mistake clearly because we are already dead
-        gameMenu.TeamDeath(team);
+        gameMenu.TeamLost(team); //increase teammate lost 
         gameObject.layer = LayerMask.NameToLayer("DeadTeddy");
 
         isAlive = false;
