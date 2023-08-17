@@ -7,6 +7,7 @@ public class Unit : MonoBehaviour
     //this is going to be the base class for both our PlayerController, and our eventual AIController. This is going to be shared properties between our PlayerController and our AI
     // Start is called before the first frame update
     protected Animator animator;
+    GameMenu gameMenu;
     //some things all units have: health, how much damage they do, their current team, a viewing angle, a rigid body, where they begin
     [SerializeField]
     int fullHealth = 100;
@@ -36,6 +37,11 @@ public class Unit : MonoBehaviour
         transform.Find("Teddy_Body").GetComponent<SkinnedMeshRenderer>().material.color = myColor; //change the bear color according to that team
         startPos = this.transform.position;
         Respawn();
+        gameMenu = GameManager.Instance.GetComponentInChildren<GameMenu>(); // Get the GameMenu component from child GameObjects
+        if (gameMenu == null) //debug stuff
+        {
+            Debug.LogError("GameMenu component not found in children.");
+        }
     }
     public int Team
     {
@@ -118,6 +124,7 @@ public class Unit : MonoBehaviour
     {
         if (!isAlive)
             return; //this is a mistake clearly because we are already dead
+        gameMenu.TeamDeath(team);
         gameObject.layer = LayerMask.NameToLayer("DeadTeddy");
 
         isAlive = false;
